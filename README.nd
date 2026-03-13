@@ -1,0 +1,26 @@
+# Fluxo do Sistema de Viagens da Igreja
+
+Este documento explica como as principais lógicas de negócio estão estruturadas no frontend da aplicação.
+
+## Como funciona o cadastro de viajantes
+O fluxo do viajante é linear, estruturado em uma arquitetura de "Etapas" (Steps). 
+1. **Login Inicial**: O viajante insere seu CPF e a senha padrão (`viagem123`).
+2. **Coleta de Dados Pessoais**: Na primeira tela da área do viajante, ele complementa o cadastro (Nome, e-mail, alergias). O sistema possui uma validação visual para menores de idade: se o checkbox for marcado, um novo campo de "CPF do Adulto Responsável" é exibido dinamicamente na tela (DOM manipulation) para estabelecer o vínculo de parentesco.
+3. **Aceite de Regras**: Antes de liberar os dados de viagem, o usuário passa por uma tela contendo regras e termos de responsabilidade que deve ser validada por um checkbox.
+
+## Como funciona a reserva de cadeiras (e Quartos de Hotel)
+A alocação é gerenciada pelo Administrador.
+- **Visualização Visual (Mapas)**: No painel Admin, nas abas de "Transporte" e "Hotel", o sistema gera uma grade via CSS Grid. No caso do ônibus, está dividido em dois blocos lógicos (Andar Superior e Andar Inferior).
+- **Interatividade**: Ao clicar em um assento vazio verde (disponível), o administrador sinaliza a alocação de um passageiro naquele local. O JavaScript adiciona a classe `.ocupado`, alterando a cor do assento para vermelho para refletir o preenchimento da vaga no DOM.
+
+## Como o sistema evita conflitos
+Para evitar superlotação ou dupla reserva:
+1. **Trava Visual (Frontend)**: Assentos e quartos que já possuem a classe `.ocupado` emitem um alerta de que o recurso foi bloqueado, exigindo que o Admin primeiro libere (clicando novamente e confirmando) antes de colocar uma nova pessoa ali.
+2. **Separação de Listas de Transporte**: A lógica estrutural determina que o viajante é associado a um tipo de transporte no momento do cadastro. O mapa de ônibus exibe *apenas* a carga de viajantes listados para ônibus. Viajantes de carro/avião ficam em uma lista separada na visualização da interface, garantindo que o Admin não os posicione nos assentos acidentalmente.
+3. **Associação Familiar**: Administradores alocam grupos familiares visualizando o campo "Responsável/Parentesco" no painel, colocando-os intencionalmente em assentos agrupados no Grid para evitar confusão interna.
+
+## Como os dados são exibidos na tela
+A aplicação opera como uma **SPA (Single Page Application)**. Todos os dados e telas coexistem no arquivo `index.html`. 
+- O CSS usa as classes `.ativa` (`display: block`) e `.oculta` (`display: none`) para manipular a visualização.
+- O JavaScript atua como o controlador: ao clicar em abas de navegação (no Admin) ou em botões de "Avançar" (no Viajante), ele captura os containers atuais, aplica a classe `.oculta` neles e aplica a classe `.ativa` no container alvo.
+- Para o Viajante, na etapa final (Cartão de Informação), os dados (como Número do Quarto e Assento do Ônibus) aparecem formatados em um layout simples em formato de lista gerada dinamicamente, garantindo que ele tenha apenas a leitura das informações que o Admin determinou.
